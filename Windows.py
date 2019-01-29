@@ -11,7 +11,7 @@ class HannWindow:
         :param M: Length of window
         """
         self.window = np.arange(M)
-        print(self.window)
+        # print(self.window)
         self.window = 0.5-0.5*cos(2*pi*self.window/M)
 
 

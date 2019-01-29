@@ -1,6 +1,8 @@
 
 import  numpy as np
-from config import FB_UPPER_FREQUENCY,FB_LOWER_FREQUENCY,FB_FILTER_NUM,FFTNUM, FB_TYPE
+from config import FB_UPPER_FREQUENCY, FB_LOWER_FREQUENCY, FB_FILTER_NUM, FFTNUM, FB_TYPE, LOG_ENABLED
+
+
 def hzToMel(f):
     return 1125 * np.log(1+f/700)
 def melToHz(mel):
@@ -25,7 +27,8 @@ def filterBank(sampleRate):
 
     filterBank = np.zeros((FB_FILTER_NUM,int(np.floor(FFTNUM/2 ))))
     if FB_TYPE == 'triangular':
-        print('Triangular filter bank.')
+        if LOG_ENABLED:
+            print('Triangular filter bank.')
         for i in range(1,FB_FILTER_NUM+1):
             left = int(final[i-1])
             center = int(final[i])
