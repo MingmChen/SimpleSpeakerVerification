@@ -156,6 +156,74 @@ if FEATURE_EXTRACTION_ENABLE:
         for file in fileNames:
             read_file(file, user)
 
+
+
 if TRAIN_MODEL_ENABLE:
-    # TODO: train model for each user.
-    pass
+    users = os.listdir(WORKING_DIRECTORY+'/files')
+    files = WORKING_DIRECTORY + '/feature_vectors'
+    learningUsers = sorted(users,key=int)
+    for lUser in learningUsers:
+        learningDataset = np.empty((0,26))
+        learningLabels = np.empty((0))
+        if TRAIN_MODEL_ENABLE:
+            from sklearn.linear_model import LogisticRegression
+            users = os.listdir(WORKING_DIRECTORY+'/files')
+            fileDir = WORKING_DIRECTORY + '/feature_vectors'
+            users = sorted(users,key=int)
+            for user in users:
+                directory =WORKING_DIRECTORY+'/feature_vectors/'+user
+
+                # print(directory)
+                # for directory in users:
+                fileNames = []
+                for path, subdirs, files in os.walk(directory):
+                    for name in files:
+                        fileNames.append(os.path.join(path,name))
+                if user == lUser:
+                    for file in fileNames[:int(fileNames.__len__()/2)]:
+                        feature = np.load(file)
+                        learningDataset = np.append(learningDataset,feature['arr_0'],axis=0)
+                        learningLabels = np.append(learningLabels,np.ones((feature['arr_0'].__len__()),dtype=float))
+                else:
+                    for file in fileNames[:int(fileNames.__len__()/20)]:
+                        feature = np.load(file)
+                        learningDataset = np.append(learningDataset,feature['arr_0'],axis=0)
+                        learningLabels = np.append(learningLabels,np.zeros((feature['arr_0'].__len__()),dtype=float))
+
+
+            print(learningDataset.shape)
+            lr = LogisticRegression()
+            lr.fit(learningDataset,learningLabels)
+            np.save(os.path.join(WORKING_DIRECTORY+'/coefficients',lUser),lr.coef_)
+            pass
+
+def test(user,file):
+    import soundfile as sf
+    outAddr = os.path.join(WORKING_DIRECTORY+'/test',file+'.npz')
+    inAddr = os.path.join(WORKING_DIRECTORY+'/files/'+user,file+'.flac')
+    data,sampleRate = sf.read(inAddr)
+    extract_features(sampleRate,data,outAddr,True)
+    coFile = os.path.join(WORKING_DIRECTORY+'/coefficients',user+'.npy')
+    coefficients = np.load(coFile)
+    testSet = np.load(outAddr)
+    lr = LogisticRegression()
+    lr.coef_ = coefficients
+    print(lr.predict(testSet))
+
+test('19','19-227-0022')
+
+
+
+def userTestSet(user):
+    audios = []
+    features = []
+    for path,subdir,file in os.walk(WORKING_DIRECTORY+'/files/'+user):
+        for name in file:
+            audios.append(name.split('.')[0])
+    for path,subdir,file in os.walk(WORKING_DIRECTORY+'/feature_vectors/'+user):
+        for name in file:
+            features.append(name.split('.')[0])
+    for file in audios:
+        if  file not in features:
+            print(file)
+# userTestSet('19')
